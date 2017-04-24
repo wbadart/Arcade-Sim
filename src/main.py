@@ -11,10 +11,15 @@
 '''
 
 import getopt
+import logging
 import pygame
 import sys
 
+from gameobj import GameObj
+
 G_KEEP_LOOPING = True
+G_MAIN_LOGGER  = logging.getLogger('G_MAIN_LOGGER')
+G_GAME_OBJS    = {}
 
 def usage(status=0):
     print('''usage: {} [ -w WIDTH -h HEIGHT ]
@@ -24,34 +29,48 @@ def usage(status=0):
     , file=sys.stderr)
     sys.exit(status)
 
+def error(e, status=1):
+    G_MAIN_LOGGER.error(e)
+    usage(status)
+
+def game_loop(screen, black=(0, 0, 0)):
+    loop_events = pygame.event.get()
+    screen.fill(black)
+    for obj in G_GAME_OBJS.values():
+        screen.blit(obj.surface, obj.rect)
+    pygame.display.flip()
+
 def main( WIDTH=640
-        , HEIGHT=480 ):
+        , HEIGHT=480
+        , LOG_LEVEL=logging.INFO ):
 
     pygame.init()
 
     if __name__ == '__main__':
+        opts, args = None, None
         try:
-            opts, args = getopt.getopt( sys.argv[1:], 'w:h:'
-                                      , ['width=', 'height=', 'help'] )
+            opts, args = getopt.getopt( sys.argv[1:], 'w:h:v'
+                                      , ['width=', 'height=', 'verbose', 'help'] )
         except getopt.GetoptError as e:
-            print(e)
+            error(e)
 
         for o, a in opts:
             if   o == '--width'  or o == '-w': WIDTH  = int(a)
             elif o == '--height' or o == '-h': HEIGHT = int(a)
+            elif o == '--verbose' or o == '-v': LOG_LEVEL = logging.DEBUG
             elif o == '--help': usage(0)
+
+    logging.basicConfig( level=LOG_LEVEL )
+    G_MAIN_LOGGER.info('Using configuration: WIDTH=%d, HEIGHT=%d', WIDTH, HEIGHT)
 
     size   = WIDTH, HEIGHT
     black  = 0, 0, 0
     screen = pygame.display.set_mode(size)
 
-    title = pygame.transform.scale(pygame.image.load('assets/menu_bg.jpg'), size)
-    title_rect = title.get_rect()
-    while G_KEEP_LOOPING:
-        loop_events = pygame.event.get()
-        screen.fill(black)
-        screen.blit(title, title_rect)
-        pygame.display.flip()
+    G_GAME_OBJS['title'] = GameObj('assets/menu_bg.jpg')
+    G_GAME_OBJS['title'].surface = pygame.transform.scale(G_GAME_OBJS['title'].surface, size)
+
+    while G_KEEP_LOOPING: game_loop(screen)
 
 if __name__ == '__main__': main()
 
