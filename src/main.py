@@ -34,10 +34,14 @@ def error(e, status=1):
     usage(status)
 
 def game_loop(screen, black=(0, 0, 0)):
+    font = pygame.font.SysFont('Helvetica', 75)
+    label = font.render('Main menu', 10, (255, 255, 255))
     loop_events = pygame.event.get()
     screen.fill(black)
     for obj in G_GAME_OBJS.values():
+        # obj.tick(loop_events)
         screen.blit(obj.surface, obj.rect)
+    screen.blit(label, (screen.get_width() / 2 - label.get_width() / 2, 100))
     pygame.display.flip()
 
 def main( WIDTH=640

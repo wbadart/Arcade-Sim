@@ -16,6 +16,7 @@ class GameObj(pygame.sprite.Sprite):
 
     def __init__(self, path):
         pygame.sprite.Sprite.__init__(self)
+
         self.surface = pygame.image.load(path)
         self.rect    = self.surface.get_rect()
 
