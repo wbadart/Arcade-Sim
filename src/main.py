@@ -19,9 +19,12 @@ from gameobj import GameObj
 
 G_KEEP_LOOPING = True
 G_MAIN_LOGGER  = logging.getLogger('G_MAIN_LOGGER')
+'''asdf'''
 G_GAME_OBJS    = {}
 
 def usage(status=0):
+    '''Display the usage message end exit with exit code `status`'''
+
     print('''usage: {} [ -w WIDTH -h HEIGHT ]
     -w WIDTH --width=WIDTH       Set the game window width (default: 640)
     -h HEIGHT --height=HEIGHT    Set the game window height (default: 480)
@@ -30,10 +33,14 @@ def usage(status=0):
     sys.exit(status)
 
 def error(e, status=1):
+    '''Use the global logger to log an error and exit with exit code `status`'''
+
     G_MAIN_LOGGER.error(e)
     usage(status)
 
 def game_loop(screen, black=(0, 0, 0)):
+    '''Main game execution'''
+
     font = pygame.font.SysFont('Helvetica', 75)
     label = font.render('Main menu', 10, (255, 255, 255))
     loop_events = pygame.event.get()
@@ -47,6 +54,7 @@ def game_loop(screen, black=(0, 0, 0)):
 def main( WIDTH=640
         , HEIGHT=480
         , LOG_LEVEL=logging.INFO ):
+    '''Main program execution, including command line parsing'''
 
     pygame.init()
 
