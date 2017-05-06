@@ -12,7 +12,7 @@ created: MAY 2017
 '''
 
 import pygame
-from . import render
+from . import _render as render
 
 name = 'help'
 

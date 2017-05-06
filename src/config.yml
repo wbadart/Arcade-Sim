@@ -20,6 +20,7 @@ module-root: modules
 modules:
 - pacman
 - duckhunt
+- spaceinvaders
 
 # Controls
 keymap:
@@ -35,4 +36,5 @@ keymap:
 
     # Misc
     help: h
+    menu: m
 

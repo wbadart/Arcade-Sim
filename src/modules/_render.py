@@ -30,6 +30,9 @@ def render_controls(render_submodule):
 
         render_submodule(gs, events)
 
+        for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'menu'):
+            gs.module = gs
+
         pygame.display.flip()
 
 

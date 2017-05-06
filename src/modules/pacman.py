@@ -12,7 +12,7 @@ created: MAY 2017
 '''
 
 import pygame
-from . import render
+from . import _render as render
 
 name = 'pacman'
 
@@ -24,6 +24,4 @@ def game_loop(gs, events):
     img.fill((200, 10, 10))
     rect = img.get_rect()
     gs.screen.blit(img, rect)
-
-    pygame.display.flip()
 

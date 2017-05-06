@@ -12,7 +12,7 @@ created: MAY 2017
 '''
 
 import logging
-import modules.render as render
+import modules._render as render
 import pygame
 
 from gameobj import *
@@ -67,9 +67,11 @@ class GameSpace(object):
         self.menu_img = menu_img, menu_rect
 
         # Fonts and stuff
-        self.fonts      = { 'title': pygame.font.SysFont('Helvetica', 16) }
-        help_key        = chr(next(k for k in self.keymap if self.keymap[k] == 'help'))
-        self.help_label = self.fonts['title'].render( 'Press \'{}\' for help.'.format(help_key)
+        self.fonts         = { 'title': pygame.font.SysFont('Helvetica', 16) }
+        help_key, menu_key = chr(next(k for k in self.keymap if self.keymap[k] == 'help'))\
+                           , chr(next(k for k in self.keymap if self.keymap[k] == 'menu'))
+        self.help_label    = self.fonts['title'].render( 'Press \'{}\' for help, \'{}\' to return to menu.'\
+                                                    .format(help_key, menu_key)
                                                     , 10, (160, 160, 160))
         self.help_label = self.help_label, self.help_label.get_rect()
         self.help_label[1].move_ip((self.width / 2 - self.help_label[1].width / 2

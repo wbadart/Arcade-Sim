@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env
 
 '''
-modules/pacman.py
+modules/spaceinvaders.py
 
-Duckhunt minigame.
+Space invaders minigame.
 
 Brittany DiGenova
 Will Badart
@@ -11,13 +11,12 @@ Will Badart
 created: MAY 2017
 '''
 
-import pygame
 from . import _render as render
 
-name = 'duck hunt'
+name = 'space invaders'
 
 @render.render_controls
 def game_loop(gs, events):
-    '''Game loop for duck hunt game'''
+    '''Runs main game loop on GameSpace gs and events'''
     pass
 
