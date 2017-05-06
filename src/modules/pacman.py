@@ -12,23 +12,13 @@ created: MAY 2017
 '''
 
 import pygame
+from . import render
 
 name = 'pacman'
 
-def game_loop(gs):
+@render.render_controls
+def game_loop(gs, events):
     '''Main execution/ game loop'''
-
-    # Tick regulation
-    gs.clock.tick(gs.tick)
-    gs.screen.fill((0, 0, 0))
-
-    gs.screen.blit(*gs.screen_bg)
-    gs.screen.blit(*gs.control_bg)
-
-    # Handle events
-    loop_events = pygame.event.get()
-    gs.gameobjs.update(loop_events)
-    gs.gameobjs.draw(gs.screen)
 
     img = pygame.Surface((gs.width, gs.width))
     img.fill((200, 10, 10))

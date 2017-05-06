@@ -45,6 +45,7 @@ class GameSpace(object):
         self.loader = ModuleLoader('./config.yml')
         print('LOADER MODULES:', self.loader.modules)
         self.module = self
+        self.help_module = self.loader.load_individual('modules.help')
 
         # Initialize main menu screen
         self.screen_bg = pygame.Surface((self.width, self.width))
@@ -65,10 +66,12 @@ class GameSpace(object):
         self.menu_img = menu_img, menu_rect
 
         # Fonts and stuff
-        self.fonts      = { 'title': pygame.font.SysFont('Helvetica', 75) }
-        self.menu_label = self.fonts['title'].render('Main menu', 10, (255, 255, 255))
+        self.fonts      = { 'title': pygame.font.SysFont('Helvetica', 16) }
+        help_key        = chr(next(k for k in self.keymap if self.keymap[k] == 'help'))
+        self.help_label = self.fonts['title'].render( 'Press \'{}\' for help.'.format(help_key)
+                                                    , 10, (160, 160, 160))
 
-        self.gameobjs = pygame.sprite.RenderPlain(
+        self.controlobjs = pygame.sprite.RenderPlain(
                         [ GameObj({ 'default': './assets/stick-center.png'
                                   , 'up':      './assets/stick-up.png'
                                   , 'left':    './assets/stick-left.png'
@@ -104,17 +107,20 @@ class GameSpace(object):
         self.screen.blit(*self.screen_bg)
         self.screen.blit(*self.control_bg)
         self.screen.blit(*self.menu_img)
-        # self.screen.blit(*self.menu)
-        # self.screen.blit(self.menu_label, (self.screen.get_width() / 2 - self.menu_label.get_width() / 2, 100))
+        self.screen.blit( self.help_label
+                        , (self.width / 2 - self.help_label.get_width() / 2
+                        ,  self.height - self.help_label.get_height()))
 
         # Handle events
         loop_events = pygame.event.get()
-        self.gameobjs.update(loop_events)
-        self.gameobjs.draw(self.screen)
+        self.controlobjs.update(loop_events)
+        self.controlobjs.draw(self.screen)
 
         self.menu.update(loop_events)
         self.menu.draw(self.screen)
 
+        for e in (e for e in loop_events if e.type == pygame.KEYDOWN and self.keymap.get(e.key) == 'help'):
+            self.module = self.help_module
 
         # Render screen
         pygame.display.flip()

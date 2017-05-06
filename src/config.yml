@@ -28,7 +28,11 @@ keymap:
     down: s
     left: a
     right: d
+
     # A/ B buttons
     A: j
     B: k
+
+    # Misc
+    help: h
 

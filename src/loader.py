@@ -44,3 +44,10 @@ class ModuleLoader(object):
             except ImportError as e:
                 logging.error(e)
 
+    def load_individual(self, module_name):
+        '''Load an individual module'''
+        try:
+            return importlib.import_module(module_name)
+        except ImportError as e:
+            logging.error(e)
+
