@@ -21,6 +21,7 @@ class ProtocolP1(Protocol):
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
+        print('PLAYER ONE CONNETCION MADE')
         self.friend.start_forwarding()
 
     def dataReceived(self, data):
@@ -47,6 +48,7 @@ class ProtocolP2(Protocol):
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
+        print('PLAYER TWO CONNETCION MADE')
         self.friend.start_forwarding()
 
     def dataReceived(self, data):

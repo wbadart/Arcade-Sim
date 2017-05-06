@@ -26,7 +26,7 @@ class GameProtocol(Protocol):
     def __init__(self):
         pass
     def dataReceived(self, data):
-        pass
+        print('GOT SOME DATA!!!')
 
 class GameProtocolFactory(ClientFactory):
     def __init__(self):
