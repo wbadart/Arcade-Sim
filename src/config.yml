@@ -13,12 +13,13 @@
 # Game window settings
 width: 640
 height: 820
-tick: 60
+tick: 30
 
 # Module loader
 module-root: modules
 modules:
 - pacman
+- snake
 - duckhunt
 - spaceinvaders
 

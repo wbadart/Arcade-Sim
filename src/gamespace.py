@@ -12,6 +12,7 @@ created: MAY 2017
 '''
 
 import logging
+import modules._misc   as misc
 import modules._render as render
 import pygame
 
@@ -104,6 +105,9 @@ class GameSpace(object):
                 self.module.game_loop(self, loop_events)
         except KeyboardInterrupt as e:
             print('Bye!')
+        except misc.Loss as e:
+            while True:
+                loss_loop(self, [])
 
     def game_loop(self, gs, events):
         game_loop(gs, events)
@@ -118,4 +122,12 @@ def game_loop(gs, events):
 
     for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'help'):
         gs.module = gs.help_module
+
+@render.render_controls
+def loss_loop(gs, events):
+    menu_img = pygame.image.load('./assets/gameover.jpg')
+    scale_factor  = gs.width / menu_img.get_width()
+    menu_img      = pygame.transform.scale(menu_img, (gs.width, gs.screen_bg[1].height))
+    gs.screen.blit(menu_img, menu_img.get_rect())
+
 
