@@ -68,7 +68,7 @@ def main( CONFIG_FNAME='./config.yml', LOG_LEVEL=logging.INFO ):
                        , format='[%(module)s][%(levelname)s]:%(message)s' )
 
     # Run game loop
-    game = GameSpace(player, config)
+    game = GameSpace(PLAYER, config)
     game.main()
 
 if __name__ == '__main__': main()
