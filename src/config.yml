@@ -19,6 +19,7 @@ tick: 30
 module-root: modules
 modules:
 - pacman
+- snake
 - duckhunt
 - spaceinvaders
 

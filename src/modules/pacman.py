@@ -44,15 +44,32 @@ class SpriteSheet(object):
 class PacmanGame(object):
     def __init__(self):
         self.sprites      = SpriteSheet('./assets/sprites/sprites.jpg')
-        self.pacman_strip = self.sprites.load_strip( (0, 0, 21, 21), 2 )
+
+        self.states = { 'up': self.sprites.load_strip( (0, 44, 22, 22), 2)
+                      , 'down': self.sprites.load_strip( (0, 64, 22, 22), 2)
+                      , 'right': self.sprites.load_strip( (0, 22, 22, 22), 2)
+                      , 'left' : self.sprites.load_strip( (0, 0, 22, 22), 2 )
+                      , 'default': self.sprites.load_strip( (0, 22, 22, 22), 2) }
+
+        self.directions = { 'up': (0, -5), 'down': (0, 5), 'left': (-5, 0), 'right': (5, 0), 'default': (5, 0) }
+
+        self.state  = 'default'
+        self.pos = 102, 81
+
         self.frame_cursor = 0
 
     def game_loop(self, gs, events):
-        # self.bg = pygame.image.load('./assets/maze_blank.jpg')
-        # self.bg = pygame.transform.scale(self.bg, (gs.width, self.bg.get_height()))
 
-        gs.screen.blit(self.pacman_strip[self.frame_cursor], (0, 0))
-        self.frame_cursor = (self.frame_cursor + 1) % len(self.pacman_strip)
+        self.bg = pygame.image.load('./assets/maze_blank.jpg')
+        self.bg = pygame.transform.scale(self.bg, (gs.width, self.bg.get_height()))
+        gs.screen.blit(self.bg, self.bg.get_rect())
+
+        for e in (e for e in events if e.type == pygame.KEYDOWN):
+            self.state = gs.keymap.get(e.key) or self.state
+
+        self.pos = (self.pos[0] + self.directions.get(self.state)[0], self.pos[1] + self.directions.get(self.state)[1])
+        gs.screen.blit(self.states.get(self.state)[self.frame_cursor], self.pos)
+        self.frame_cursor = (self.frame_cursor + 1) % 2
 
         # self.frame_cursor = 0
         # gs.screen.blit(self.pacman_strip[self.frame_cursor], (20, 20))
@@ -76,7 +93,6 @@ def game_loop(gs, events):
 class AnimatedGameObj(pygame.sprite.Sprite):
     '''Like GameObj but updates to next frame with each tick'''
 
-    rotmap = { 'up': 90, 'left': 180, 'down': 270, 'right': 0, 'default': 0 }
     dirmap = { 'up': (0, -1), 'left': (-1, 0), 'down': (0, 1), 'right': (1, 0), 'default': (1, 0) }
 
     def __init__(self, fname, x=0, y=0, rotation=0, keymap={}):

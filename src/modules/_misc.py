@@ -1,0 +1,2 @@
+class Loss(Exception):
+    pass
