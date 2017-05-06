@@ -69,7 +69,7 @@ class Button(pygame.sprite.Sprite):
         self.font     = pygame.font.SysFont('Helvetica', 75)
         self.update()
 
-    def update(self):
+    def update(self, events=[]):
         '''Set object properties (basically color) based on `self.active`'''
         self.color = (0, 0, 0) if self.active else (255, 255, 255)
         self.label = self.font.render(self.text, 10, self.color)
@@ -105,7 +105,7 @@ class Menu(object):
         self.cursor  = 0
         self.set_active()
 
-    def update(self, events=[]):
+    def update(self, events):
         '''Change the active menu item based on key'''
         for e in (e for e in events if e.type == pygame.KEYDOWN):
             if self.keymap.get(e.key) == 'down':

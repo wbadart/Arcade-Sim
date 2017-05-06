@@ -12,20 +12,12 @@ created: MAY 2017
 '''
 
 import pygame
+from . import render
 
 name = 'duck hunt'
 
-def game_loop(gs):
+@render.render_controls
+def game_loop(gs, events):
     '''Game loop for duck hunt game'''
-    gs.clock.tick(gs.tick)
-    gs.screen.fill((0, 0, 0))
-
-    gs.screen.blit(*gs.screen_bg)
-    gs.screen.blit(*gs.control_bg)
-
-    loop_events = pygame.event.get()
-    gs.gameobjs.update(loop_events)
-    gs.gameobjs.draw(gs.screen)
-
-    pygame.display.flip()
+    pass
 

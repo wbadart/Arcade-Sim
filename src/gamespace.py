@@ -12,6 +12,7 @@ created: MAY 2017
 '''
 
 import logging
+import modules.render as render
 import pygame
 
 from gameobj import *
@@ -60,9 +61,9 @@ class GameSpace(object):
         menu_img  = pygame.image.load('./assets/menu_bg.jpg')
         menu_rect = menu_img.get_rect()
 
-        scale_factor = self.width / menu_rect.width
-        menu_img  = pygame.transform.scale(menu_img, (self.width, self.screen_bg[1].height))
-        menu_rect = menu_img.get_rect()
+        scale_factor  = self.width / menu_rect.width
+        menu_img      = pygame.transform.scale(menu_img, (self.width, self.screen_bg[1].height))
+        menu_rect     = menu_img.get_rect()
         self.menu_img = menu_img, menu_rect
 
         # Fonts and stuff
@@ -70,6 +71,9 @@ class GameSpace(object):
         help_key        = chr(next(k for k in self.keymap if self.keymap[k] == 'help'))
         self.help_label = self.fonts['title'].render( 'Press \'{}\' for help.'.format(help_key)
                                                     , 10, (160, 160, 160))
+        self.help_label = self.help_label, self.help_label.get_rect()
+        self.help_label[1].move_ip((self.width / 2 - self.help_label[1].width / 2
+                                  , self.height - self.help_label[1].height ))
 
         self.controlobjs = pygame.sprite.RenderPlain(
                         [ GameObj({ 'default': './assets/stick-center.png'
@@ -93,35 +97,23 @@ class GameSpace(object):
     def main(self):
         '''Main game execution. Basically a wrapper for `game_loop`'''
         try:
-            while True: self.module.game_loop(self)
+            while True:
+                loop_events = pygame.event.get()
+                self.module.game_loop(self, loop_events)
         except KeyboardInterrupt as e:
             print('Bye!')
 
-    def game_loop(self, gs=None):
-        '''Main execution/ game loop'''
+    def game_loop(self, gs, events):
+        game_loop(gs, events)
 
-        # Tick regulation
-        self.clock.tick(60)
-        self.screen.fill((0, 0, 0))
+@render.render_controls
+def game_loop(gs, events):
+    '''Main execution/ game loop'''
 
-        self.screen.blit(*self.screen_bg)
-        self.screen.blit(*self.control_bg)
-        self.screen.blit(*self.menu_img)
-        self.screen.blit( self.help_label
-                        , (self.width / 2 - self.help_label.get_width() / 2
-                        ,  self.height - self.help_label.get_height()))
+    gs.screen.blit(*gs.menu_img)
+    gs.menu.update(events)
+    gs.menu.draw(gs.screen)
 
-        # Handle events
-        loop_events = pygame.event.get()
-        self.controlobjs.update(loop_events)
-        self.controlobjs.draw(self.screen)
-
-        self.menu.update(loop_events)
-        self.menu.draw(self.screen)
-
-        for e in (e for e in loop_events if e.type == pygame.KEYDOWN and self.keymap.get(e.key) == 'help'):
-            self.module = self.help_module
-
-        # Render screen
-        pygame.display.flip()
+    for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'help'):
+        gs.module = gs.help_module
 

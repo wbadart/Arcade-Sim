@@ -17,18 +17,18 @@ import pygame
 def render_controls(render_submodule):
     '''Send all control modules (joystick and such) to screen'''
 
-    def render_main(gs):
+    def render_main(gs, events=[]):
         gs.clock.tick(gs.tick)
         gs.screen.fill((0, 0, 0))
 
         gs.screen.blit(*gs.screen_bg)
         gs.screen.blit(*gs.control_bg)
+        gs.screen.blit(*gs.help_label)
 
-        loop_events = pygame.event.get()
-        gs.controlobjs.update(loop_events)
+        gs.controlobjs.update(events)
         gs.controlobjs.draw(gs.screen)
 
-        render_submodule(gs, loop_events)
+        render_submodule(gs, events)
 
         pygame.display.flip()
 

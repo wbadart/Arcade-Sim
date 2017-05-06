@@ -12,20 +12,13 @@ created: MAY 2017
 '''
 
 import pygame
+from . import render
 
 name = 'help'
 
-def game_loop(gs):
+@render.render_controls
+def game_loop(gs, events):
     '''Game loop to show help menu'''
-    gs.clock.tick(gs.tick)
-    gs.screen.fill((0, 0, 0))
-
-    gs.screen.blit(*gs.screen_bg)
-    gs.screen.blit(*gs.control_bg)
-
-    loop_events = pygame.event.get()
-    gs.gameobjs.update(loop_events)
-    gs.gameobjs.draw(gs.screen)
 
     B_key      = chr(next((k for k in gs.keymap if gs.keymap[k] == 'B')))
     help_str   = ['{} - {}'.format(gs.keymap[k], chr(k)) for k in gs.keymap]\
@@ -35,9 +28,6 @@ def game_loop(gs):
     for i, l in enumerate(labels):
         gs.screen.blit(l, (gs.width / 2 - l.get_width() / 2, 20 + i * l.get_height()))
 
-    for e in (e for e in loop_events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'B'):
+    for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'B'):
         gs.module = gs
-
-    pygame.display.flip()
-
 
