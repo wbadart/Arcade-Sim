@@ -19,10 +19,25 @@ import pygame
 from gameobj import *
 from loader import ModuleLoader
 
+from twisted.internet.protocol  import Protocol, ClientFactory
+from twisted.internet.endpoints import TCP4ClientEndpoint
+
+class GameProtocol(Protocol):
+    def __init__(self):
+        pass
+    def dataReceived(self, data):
+        pass
+
+class GameProtocolFactory(ClientFactory):
+    def __init__(self):
+        pass
+    def buildProtocol(self, addr):
+        return GameProtocol()
+
 class GameSpace(object):
     '''The main export. Contains configuration and main execution for pygame.'''
 
-    def __init__(self, config={}):
+    def __init__(self, player, config={}):
         '''Construct GameSpace and perform pygame initialization'''
 
         # Initialize pygame library
@@ -97,6 +112,12 @@ class GameSpace(object):
 
         self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
+
+        from twisted.internet import reactor
+        endpoint = TCP4ClientEndpoint(reactor, config.get('remote-host'), 40007 if player == 1 else 40008)
+        endpoint.connect(GameProtocolFactory())
+        reactor.run()
+
     def main(self):
         '''Main game execution. Basically a wrapper for `game_loop`'''
         try:
