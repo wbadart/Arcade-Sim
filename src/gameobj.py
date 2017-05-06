@@ -51,6 +51,39 @@ class GameObj(pygame.sprite.Sprite):
         self.rect  = self.image.get_rect()
         self.rect.move_ip(*pos)
 
+class AnimatedGameObj(pygame.sprite.Sprite):
+    '''Like GameObj but updates to next frame with each tick'''
+
+    rotmap = { 'up': 90, 'left': 180, 'down': 270, 'right': 0 }
+    dirmap = { 'up': (0, -1), 'left': (-1, 0), 'down': (0, 1), 'right': (1, 0) }
+
+    def __init__(self, frames, x=0, y=0, rotation=0, keymap={}):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.frames       = frames
+        self.frame_cursor = 0
+        self.state  = 'default'
+        self.keymap = keymap
+
+        self.pos = self.x, self.y = x, y
+
+    def update(self, events):
+        '''Respond to pygame events'''
+        self.frame_cursor = (self.frame_cursor + 1) % len(self.frames)
+        for e in events:
+            if e.type == pygame.KEYDOWN\
+                    and self.keymap.get(e.key) in self.states:
+                self.state = self.keymap.get(e.key)
+        self.update_obj(self.pos)
+
+    def update_obj(self, pos):
+        self.pos   = ( self.pos[0] + AnimatedGameObj.dirmap.get(self.state)[1]
+                     , self.pos[1] + AnimatedGameObj.dirmap.get(self.state)[1] )
+        self.image = pygame.image.load(self.frames[self.frame_cursor])
+        self.image = pygame.transform.rotate(self.image, AnimatedGameObj.rotmap.get(self.state))
+        self.rect  = self.image.get_rect()
+        self.rect.move_ip(*self.pos)
+
 class Button(pygame.sprite.Sprite):
     '''Class to represent menu buttons (separate from the A/B buttons).'''
 
