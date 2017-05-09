@@ -50,9 +50,11 @@ class Player2Client(Protocol):
     def __init__(self, gs):
         self.gs = gs
         logging.debug('Constructing P2 client')
+        self.connected = False
 
-    def conenctionMade(self):
+    def connectionMade(self):
         logging.info('P2 made connection')
+        self.connected = True
 
     def dataReceived(self, data):
         logging.info('P2 Client got data: %s', data)
@@ -65,7 +67,8 @@ class Player2ClientFactory(ClientFactory):
         self.connection = Player2Client(gs)
 
     def write(self, data):
-        self.connection.transport.write(data)
+        if self.connection.connected == True:
+            self.connection.transport.write(data)
 
     def buildProtocol(self, addr):
         return self.connection
