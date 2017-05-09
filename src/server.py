@@ -51,10 +51,8 @@ class ProtocolP2(Protocol):
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
-        pass
-        #logging.debug('P2 connection made')
-        #self.friend.start_forwarding()
-        #self.send_to_friend('INFO:friend_connected')
+        logging.debug('P2 connection made')
+
 
     def dataReceived(self, data):
         logging.debug('P2 got data "%s"', data)
