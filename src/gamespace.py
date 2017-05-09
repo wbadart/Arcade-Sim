@@ -104,7 +104,7 @@ class GameSpace(object):
         self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
-        host = 'ash.campus.nd.edu', 40019
+        host = 'localhost', 8000
         from twisted.internet import reactor
 
         if player == 1:
@@ -113,16 +113,14 @@ class GameSpace(object):
             self.factory = Player1ServerFactory(self)
             #self.factory = Player2ClientFactory(self)
             #reactor.connectTCP('ash.campus.nd.edu', 40007, self.factory)
-            #TCP4ServerEndpoint(reactor, host[1]).listen(self.factory)
-            reactor.listenTCP(host[1], self.factory)
+            TCP4ServerEndpoint(reactor, host[1]).listen(self.factory)
 
         else:
 
             logging.info('P2 attempting connection to %s:%d', *host)
             self.factory = Player2ClientFactory(self)
             #reactor.connectTCP('ash.campus.nd.edu', 40019, self.factory)
-            #TCP4ClientEndpoint(reactor,'localhost', 8000).connect(self.factory)
-            reactor.connectTCP('ash.campus.nd.edu', 40019, self.factory)
+            TCP4ClientEndpoint(reactor, *host).connect(self.factory)
 
         pid = os.fork()
         if pid == 0: reactor.run()
