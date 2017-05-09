@@ -114,8 +114,8 @@ class GameSpace(object):
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
         from twisted.internet import reactor
-        endpoint = TCP4ClientEndpoint(reactor, config.get('remote-host'), 40007 if player == 1 else 40008)
-        endpoint.connect(GameProtocolFactory())
+        self.endpoint = TCP4ClientEndpoint(reactor, config.get('remote-host'), 40007 if player == 1 else 40008)
+        self.endpoint.connect(GameProtocolFactory())
         reactor.run()
 
     def main(self):
