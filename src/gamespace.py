@@ -109,16 +109,14 @@ class GameSpace(object):
         if player == 1:
 
             logging.info('P1 listening on port %d', port)
-            endpoint = TCP4ServerEndpoint(reactor, port)
-            endpoint.listen(Player1ServerFactory())
-            pid = os.fork()
-            if pid == 0: reactor.run()
+            reactor.listenTCP(port, Player1ServerFactory())
+            # pid = os.fork()
+            # if pid == 0: reactor.run()
 
         else:
 
             host = 'localhost'
             logging.info('P2 attempting connection to %s:%d', host, port)
-            endpoint = TCP4ClientEndpoint(reactor, host, port)
             reactor.connectTCP(host, port, Player2ClientFactory())
             # endpoint.connect(Player2ClientFactory())
 
