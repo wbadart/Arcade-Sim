@@ -19,25 +19,22 @@ from twisted.internet.defer     import DeferredQueue
 
 class ProtocolP1(Protocol):
     def __init__(self):
-        self.friend     = None
+        self.friend     = ProtocolP2(self)
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
         logging.debug('P1 connection made')
         self.friend.start_forwarding()
-        self.send_to_friend('INFO:friend_connected')
+        #self.send_to_friend('INFO:friend_connected')
 
     def dataReceived(self, data):
         logging.debug('P1 got data "%s"', data)
-        self.data_queue.put(data)
-
-    def start_forwarding(self):
-        self.data_queue.get().addCallback(self.send_to_friend)
-
-    def send_to_friend(self, data):
-        logging.debug('P1 sent "%s" to friend', data)
         self.friend.transport.write(data)
-        self.data_queue.get().addCallback(self.send_to_friend)
+        #self.data_queue.put(data)
+
+    def set_friend(self, conn):
+        logging.info('Setting P1 friend: %s', conn)
+        self.friend = conn
 
 class ProtocolP1Factory(ServerFactory):
     def __init__(self):
@@ -54,9 +51,10 @@ class ProtocolP2(Protocol):
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
-        logging.debug('P2 connection made')
-        self.friend.start_forwarding()
-        self.send_to_friend('INFO:friend_connected')
+        pass
+        #logging.debug('P2 connection made')
+        #self.friend.start_forwarding()
+        #self.send_to_friend('INFO:friend_connected')
 
     def dataReceived(self, data):
         logging.debug('P2 got data "%s"', data)
@@ -87,13 +85,14 @@ def main( PORT_P1=40007, PORT_P2=40019 ):
     logging.basicConfig( level=logging.DEBUG
                        , format='[%(module)s][%(levelname)s]:%(message)s' )
 
+    logging.info
     endpoint_p1, endpoint_p2 =\
             TCP4ServerEndpoint(reactor, PORT_P1)\
           , TCP4ServerEndpoint(reactor, PORT_P2)
 
     fact_p1 = ProtocolP1Factory()
     fact_p2 = ProtocolP2Factory(fact_p1.connection)
-    fact_p1.connection.friend = fact_p2.connection
+    fact_p1.connection.set_friend(fact_p2.connection)
     endpoint_p1.listen(fact_p1)
     endpoint_p2.listen(fact_p2)
     reactor.run()

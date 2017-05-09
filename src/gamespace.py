@@ -114,11 +114,12 @@ class GameSpace(object):
         self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
-        logging.debug('CONFIG: %s', config)
+        self.host = config.get('remote-host'), config.get('remote-ports').get('p1' if player == 1 else 'p2')
+        logging.info('Attempting connection to %s', self.host)
+
         from twisted.internet import reactor
-        self.endpoint = TCP4ClientEndpoint(reactor, config.get('remote-host')
-                                                  , config.get('remote-ports')['p1'] if player == 1 else\
-                                                    config.get('remote-ports')['p2'] )
+        self.endpoint = TCP4ClientEndpoint(reactor, *self.host)
+
         self.endpoint.connect(GameProtocolFactory())
         pid = os.fork()
         if pid == 0: reactor.run()
