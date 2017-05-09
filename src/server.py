@@ -63,7 +63,7 @@ class ProtocolP2(Protocol):
 
 class ProtocolP2Factory(ServerFactory):
     def __init__(self, friend):
-        self.connection = ProtocolP2(self.friend)
+        self.connection = ProtocolP2(friend)
 
     def buildProtocol(self, addr):
         return self.connection
