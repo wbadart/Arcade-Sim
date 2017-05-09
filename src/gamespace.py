@@ -104,22 +104,20 @@ class GameSpace(object):
         self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
-        port = 8000
+        host = 'localhost', 8000
         from twisted.internet import reactor
 
         if player == 1:
 
-            logging.info('P1 listening on port %d', port)
+            logging.info('P1 listening on port %d', host[1])
             self.factory = Player1ServerFactory(self)
-            print('SELF FACTORY!!!! %s', self.factory)
-            TCP4ServerEndpoint(reactor, port).listen(self.factory)
+            TCP4ServerEndpoint(reactor, host[1]).listen(self.factory)
 
         else:
 
-            host = 'localhost'
-            logging.info('P2 attempting connection to %s:%d', host, port)
+            logging.info('P2 attempting connection to %s:%d', *host)
             self.factory = Player2ClientFactory(self)
-            TCP4ClientEndpoint(reactor, host, port).connect(self.factory)
+            TCP4ClientEndpoint(reactor, *host).connect(self.factory)
 
         pid = os.fork()
         if pid == 0: reactor.run()
@@ -134,8 +132,7 @@ class GameSpace(object):
         except KeyboardInterrupt as e:
             print('Bye!')
         except misc.Loss as e:
-            while True:
-                loss_loop(self, [])
+            while True: loss_loop(self, [])
 
     def game_loop(self, gs, events, network_data):
         game_loop(gs, events, network_data)

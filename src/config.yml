@@ -20,8 +20,8 @@ module-root: modules
 modules:
 - pacman
 - snake
-- duckhunt
-- spaceinvaders
+# - duckhunt
+# - spaceinvaders
 
 # Network
 remote-host: student00.cse.nd.edu
