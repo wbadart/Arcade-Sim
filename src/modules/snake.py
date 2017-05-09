@@ -44,7 +44,7 @@ class SnakeGame(object):
     points = 0
 
     def __init__(self):
-        self.snakes = [ Snake() for _ in xrange(2) ]
+        self.snakes = [ Snake() for _ in range(2) ]
 
     def game_loop(self, gs, events, network_data):
 
@@ -73,7 +73,7 @@ class Snake(object):
     def __init__(self):
 
         self.color = get_snake_color()
-        self.data  = [ SnakeCell(get_snake_start_pos()) for _ in xrange(2) ]
+        self.data  = [ SnakeCell(get_snake_start_pos()) for _ in range(2) ]
         self.group = pygame.sprite.RenderPlain(self.data)
 
         self.player = player
