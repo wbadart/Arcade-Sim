@@ -12,29 +12,30 @@ created: MAY 2017
 '''
 
 import pygame
-import random
+from random import randrange
 from . import _misc   as misc
 from . import _render as render
 
 name = 'snake'
 
 class SnakeCell(pygame.sprite.Sprite):
-    def __init__(self, pos):
+    def __init__(self, pos, color=(255, 255, 255)):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((30, 30))
-        self.image.fill((255, 255, 255))
+        self.image.fill(color)
         self.rect  = self.image.get_rect()
         self.rect.move_ip(pos)
 
 class SnakeGame(object):
 
-    food = SnakeCell((random.randrange(0, 600, 30), random.randrange(0, 600, 30)))
+    colors = (randrange(80, 255), randrange(80, 255),randrange(80, 255))\
+           , (randrange(80, 255), randrange(80, 255),randrange(80, 255))
+
+    food = SnakeCell((randrange(0, 600, 30), randrange(0, 600, 30)))
     points = 0
 
-    def __init__(self):
-
-        self.pos = self.x, self.y = 250, 250
-        self.main_snake = Snake()
+    def __init__(self, player=1):
+        self.main_snake = Snake(player)
 
     def game_loop(self, gs, events):
         gs.screen.blit(SnakeGame.food.image, SnakeGame.food.rect)
@@ -43,9 +44,14 @@ class SnakeGame(object):
 
 
 class Snake(object):
-    def __init__(self):
-        self.data  = [ SnakeCell((250, 250)), SnakeCell((220, 250)) ]
+    def __init__(self, player=1):
+        self.color = SnakeGame.colors[0 if player == 1 else 1]
+
+        self.data  = [ SnakeCell((250, 250) if player == 1 else (450, 250), self.color)
+                     , SnakeCell((220, 250) if player == 1 else (420, 250), self.color) ]
+
         self.group = pygame.sprite.RenderPlain(self.data)
+        self.player = player
         self.state = 'right'
         self.states = { 'up': (0, -30),
                         'down': (0, 30),
@@ -59,11 +65,11 @@ class Snake(object):
 
         x_movement = self.states.get(self.state)[0]
         y_movement = self.states.get(self.state)[1]
-        self.data.insert(0, SnakeCell(( self.data[0].rect.x + x_movement, self.data[0].rect.y + y_movement )))
+        self.data.insert(0, SnakeCell(( self.data[0].rect.x + x_movement, self.data[0].rect.y + y_movement ), self.color))
 
         if self.data[0].rect.colliderect(SnakeGame.food.rect):
             SnakeGame.points += 1
-            SnakeGame.food = SnakeCell((random.randrange(0, 600, 30), random.randrange(0, 600, 30)))
+            SnakeGame.food = SnakeCell((randrange(0, 600, 30), randrange(0, 600, 30)))
         elif self.data[0].rect.collidelist(self.data[1:]) != -1:
             raise misc.Loss
         else: self.data.pop()

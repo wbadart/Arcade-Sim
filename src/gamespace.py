@@ -14,6 +14,7 @@ created: MAY 2017
 import logging
 import modules._misc   as misc
 import modules._render as render
+import os
 import pygame
 
 from gameobj import *
@@ -26,7 +27,7 @@ class GameProtocol(Protocol):
     def __init__(self):
         pass
     def dataReceived(self, data):
-        print('GOT SOME DATA!!!')
+        logging.warning('Got data: %s')
 
 class GameProtocolFactory(ClientFactory):
     def __init__(self):
@@ -113,10 +114,14 @@ class GameSpace(object):
         self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
+        logging.debug('CONFIG: %s', config)
         from twisted.internet import reactor
-        self.endpoint = TCP4ClientEndpoint(reactor, config.get('remote-host'), 40007 if player == 1 else 40008)
+        self.endpoint = TCP4ClientEndpoint(reactor, config.get('remote-host')
+                                                  , config.get('remote-ports')['p1'] if player == 1 else\
+                                                    config.get('remote-ports')['p2'] )
         self.endpoint.connect(GameProtocolFactory())
-        reactor.run()
+        pid = os.fork()
+        if pid == 0: reactor.run()
 
     def main(self):
         '''Main game execution. Basically a wrapper for `game_loop`'''

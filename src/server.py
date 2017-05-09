@@ -11,6 +11,8 @@ Will Badart
 created: MAY 2017
 '''
 
+import logging
+
 from twisted.internet.protocol  import Protocol, ServerFactory
 from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet.defer     import DeferredQueue
@@ -21,17 +23,21 @@ class ProtocolP1(Protocol):
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
-        print('PLAYER ONE CONNETCION MADE')
+        logging.debug('P1 connection made')
         self.friend.start_forwarding()
+        self.send_to_friend('INFO:friend_connected')
 
     def dataReceived(self, data):
+        logging.debug('P1 got data "%s"', data)
         self.data_queue.put(data)
 
     def start_forwarding(self):
         self.data_queue.get().addCallback(self.send_to_friend)
 
     def send_to_friend(self, data):
+        logging.debug('P1 sent "%s" to friend', data)
         self.friend.transport.write(data)
+        self.data_queue.get().addCallback(self.send_to_friend)
 
 class ProtocolP1Factory(ServerFactory):
     def __init__(self):
@@ -48,18 +54,21 @@ class ProtocolP2(Protocol):
         self.data_queue = DeferredQueue()
 
     def connectionMade(self):
-        print('PLAYER TWO CONNETCION MADE')
+        logging.debug('P2 connection made')
         self.friend.start_forwarding()
+        self.send_to_friend('INFO:friend_connected')
 
     def dataReceived(self, data):
+        logging.debug('P2 got data "%s"', data)
         self.data_queue.put(data)
 
     def start_forwarding(self):
         self.data_queue.get().addCallback(self.send_to_friend)
 
     def send_to_friend(self, data):
+        logging.debug('P2 sent "%s" to friend', data)
         self.friend.transport.write(data)
-        self.data_queue.get()
+        self.data_queue.get().addCallback(self.send_to_friend)
 
 class ProtocolP2Factory(ServerFactory):
     def __init__(self, friend):
@@ -71,9 +80,12 @@ class ProtocolP2Factory(ServerFactory):
 #=======================================
 
 
-def main( PORT_P1=40007, PORT_P2=40008 ):
+def main( PORT_P1=40007, PORT_P2=40019 ):
     '''Main server execution; start listening for gamers.'''
     from twisted.internet import reactor
+
+    logging.basicConfig( level=logging.DEBUG
+                       , format='[%(module)s][%(levelname)s]:%(message)s' )
 
     endpoint_p1, endpoint_p2 =\
             TCP4ServerEndpoint(reactor, PORT_P1)\

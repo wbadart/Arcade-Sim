@@ -23,6 +23,12 @@ modules:
 - duckhunt
 - spaceinvaders
 
+# Network
+remote-host: student00.cse.nd.edu
+remote-ports:
+  p1: 40007
+  p2: 40019
+
 # Controls
 keymap:
     # Joystick controls
