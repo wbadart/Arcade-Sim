@@ -83,7 +83,9 @@ class Snake(object):
 
         x_movement = self.states.get(self.state)[0]
         y_movement = self.states.get(self.state)[1]
-        self.data.insert(0, SnakeCell(( self.data[0].rect.x + x_movement, self.data[0].rect.y + y_movement ), self.color))
+        self.data.insert(0, SnakeCell(( self.data[0].rect.x + x_movement
+                                      , self.data[0].rect.y + y_movement )
+                                      , self.color) )
 
         if self.data[0].rect.colliderect(SnakeGame.food.rect):
             SnakeGame.points += 1

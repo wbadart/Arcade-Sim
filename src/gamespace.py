@@ -155,7 +155,7 @@ def game_loop(gs, events, network_data):
         gs.module = gs.help_module
 
 @render.render_controls
-def loss_loop(gs, events):
+def loss_loop(gs, events, net_data=[]):
     menu_img = pygame.image.load('./assets/gameover.jpg')
     scale_factor  = gs.width / menu_img.get_width()
     menu_img      = pygame.transform.scale(menu_img, (gs.width, gs.screen_bg[1].height))
