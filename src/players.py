@@ -56,16 +56,17 @@ class Player2Client(Protocol):
 
     def dataReceived(self, data):
         logging.info('P2 Client got data: %s', data)
+        self.gs.network_data.append(data)
 
 class Player2ClientFactory(ClientFactory):
 
     def __init__(self, gs):
         self.gs = gs
+        self.connection = Player2Client(gs)
 
-    def dataReceived(self, data):
-        logging.info('P2 Server got data: %s', data)
-        self.gs.network_data.append(data)
+    def write(self, data):
+        self.connection.transport.write(data)
 
     def buildProtocol(self, addr):
-        return Player2Client(self.gs)
+        return self.connection
 
