@@ -128,8 +128,11 @@ class GameSpace(object):
 
     def main(self):
         '''Main game execution. Basically a wrapper for `game_loop`'''
+        '''Create a new looping call that is a function that runs the game loop
+        lc = loopingcall(Function to call)
+        lc.start 1/60 look up looping call'''
         try:
-            while True:
+            while True: #need to avoid looping twice infinitely use twisteed looping call
                 loop_events = pygame.event.get()
                 self.module.game_loop(self, loop_events, self.network_data)
         except KeyboardInterrupt as e:
