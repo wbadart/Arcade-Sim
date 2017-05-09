@@ -58,7 +58,7 @@ class PacmanGame(object):
 
         self.frame_cursor = 0
 
-    def game_loop(self, gs, events):
+    def game_loop(self, gs, events, network_data):
 
         self.bg = pygame.image.load('./assets/maze_blank.jpg')
         self.bg = pygame.transform.scale(self.bg, (gs.width, self.bg.get_height()))
@@ -79,10 +79,10 @@ name   = 'pacman'
 G_PACMAN = PacmanGame()
 
 @render.render_controls
-def game_loop(gs, events):
+def game_loop(gs, events, network_data):
     '''Main execution/ game loop'''
 
-    G_PACMAN.game_loop(gs, events)
+    G_PACMAN.game_loop(gs, events, network_data)
 
     # gs.screen.blit(bg, bg.get_rect())
 

@@ -32,7 +32,9 @@ class GameSpace(object):
 
         # Initialize pygame library
         pygame.init()
-        self.config = config
+        self.config       = config
+        self.network_data = []
+        self.multiplayer  = False if player == 1 else True
 
         # Configure and open the window
         self.size   = self.width, self.height = config.get('width'), config.get('height')
@@ -50,7 +52,6 @@ class GameSpace(object):
 
         # Bring in the module loader
         self.loader = ModuleLoader('./config.yml')
-        print('LOADER MODULES:', self.loader.modules)
         self.module = self
         self.help_module = self.loader.load_individual('modules.help')
 
@@ -109,13 +110,13 @@ class GameSpace(object):
         if player == 1:
 
             logging.info('P1 listening on port %d', port)
-            TCP4ServerEndpoint(reactor, port).listen(Player1ServerFactory())
+            TCP4ServerEndpoint(reactor, port).listen(Player1ServerFactory(self))
 
         else:
 
             host = 'localhost'
             logging.info('P2 attempting connection to %s:%d', host, port)
-            TCP4ClientEndpoint(reactor, host, port).connect(Player2ClientFactory())
+            TCP4ClientEndpoint(reactor, host, port).connect(Player2ClientFactory(self))
 
         pid = os.fork()
         if pid == 0: reactor.run()
@@ -126,18 +127,21 @@ class GameSpace(object):
         try:
             while True:
                 loop_events = pygame.event.get()
-                self.module.game_loop(self, loop_events)
+                self.module.game_loop(self, loop_events, self.network_data)
         except KeyboardInterrupt as e:
             print('Bye!')
         except misc.Loss as e:
             while True:
                 loss_loop(self, [])
 
-    def game_loop(self, gs, events):
-        game_loop(gs, events)
+    def game_loop(self, gs, events, network_data):
+        game_loop(gs, events, network_data)
+
+    def on_datareceived(self, data):
+        self.network_data.append(data)
 
 @render.render_controls
-def game_loop(gs, events):
+def game_loop(gs, events, network_data):
     '''Main execution/ game loop'''
 
     gs.screen.blit(*gs.menu_img)

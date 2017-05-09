@@ -17,7 +17,7 @@ import pygame
 def render_controls(render_submodule):
     '''Send all control modules (joystick and such) to screen'''
 
-    def render_main(gs, events=[]):
+    def render_main(gs, events=[], network_data=[]):
         gs.clock.tick(gs.tick)
         gs.screen.fill((0, 0, 0))
 
@@ -28,7 +28,7 @@ def render_controls(render_submodule):
         gs.controlobjs.update(events)
         gs.controlobjs.draw(gs.screen)
 
-        render_submodule(gs, events)
+        render_submodule(gs, events, network_data)
 
         for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'menu'):
             gs.module = gs

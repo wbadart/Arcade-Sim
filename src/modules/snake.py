@@ -12,11 +12,23 @@ created: MAY 2017
 '''
 
 import pygame
+from collections import namedtuple
 from random import randrange
 from . import _misc   as misc
 from . import _render as render
 
-name = 'snake'
+name  = 'snake'
+ETYPE = namedtuple('ETYPE', 'type key')
+
+def get_snake_color():
+    return randrange(80, 255), randrange(80, 255), randrange(80, 255)
+def get_snake_start_pos():
+    return randrange(250, 500), randrange(250, 500)
+
+def netdata2event(datastr):
+    if ':' not in datastr: return ETYPE(type=None, key='')
+    etype, ekey = data.string.split(':')
+    return ETYPE(type=int(etype), key=ekey)
 
 class SnakeCell(pygame.sprite.Sprite):
     def __init__(self, pos, color=(255, 255, 255)):
@@ -28,35 +40,45 @@ class SnakeCell(pygame.sprite.Sprite):
 
 class SnakeGame(object):
 
-    colors = (randrange(80, 255), randrange(80, 255),randrange(80, 255))\
-           , (randrange(80, 255), randrange(80, 255),randrange(80, 255))
-
-    food = SnakeCell((randrange(0, 600, 30), randrange(0, 600, 30)))
+    food   = SnakeCell((randrange(0, 600, 30), randrange(0, 600, 30)))
     points = 0
 
-    def __init__(self, player=1):
-        self.main_snake = Snake(player)
+    def __init__(self):
+        self.snakes = [ Snake() for _ in xrange(2) ]
 
-    def game_loop(self, gs, events):
+    def game_loop(self, gs, events, network_data):
+
+        network_data = netdata2event(network_data)
+        print(network_data)
+
+        data = ''
+        try:
+            data = network_data.pop()
+        except IndexError as e:
+            pass
+
+        for e in (e for e in events if e.type == pygame.KEYDOWN or e.type == pygame.KEYUP):
+            gs.transport.write('{}:{}'.format(e.type, e.key))
+
         gs.screen.blit(SnakeGame.food.image, SnakeGame.food.rect)
-        self.main_snake.update(gs, events)
-        self.main_snake.draw(gs.screen)
+        self.snakes[0].update(gs, events)
+        self.snakes[0].draw(gs.screen)
+
+        if gs.multiplayer:
+            self.snakes[1].update(gs, network_data)
+            self.snakes[1].draw(gs.screen)
 
 
 class Snake(object):
-    def __init__(self, player=1):
-        self.color = SnakeGame.colors[0 if player == 1 else 1]
+    def __init__(self):
 
-        self.data  = [ SnakeCell((250, 250) if player == 1 else (450, 250), self.color)
-                     , SnakeCell((220, 250) if player == 1 else (420, 250), self.color) ]
-
+        self.color = get_snake_color()
+        self.data  = [ SnakeCell(get_snake_start_pos()) for _ in xrange(2) ]
         self.group = pygame.sprite.RenderPlain(self.data)
+
         self.player = player
-        self.state = 'right'
-        self.states = { 'up': (0, -30),
-                        'down': (0, 30),
-                        'right': (30, 0),
-                        'left' : (-30, 0)}
+        self.states = { 'up': (0, -30), 'down': (0, 30), 'right': (30, 0), 'left' : (-30, 0) }
+        self.state  = 'right'
 
     def update(self, gs, events):
 
@@ -81,7 +103,7 @@ class Snake(object):
 G_SNAKE = SnakeGame()
 
 @render.render_controls
-def game_loop(gs, events):
+def game_loop(gs, events, network_data):
     '''Main execution/ game loop'''
-    G_SNAKE.game_loop(gs,events)
+    G_SNAKE.game_loop(gs, events, network_data)
 
