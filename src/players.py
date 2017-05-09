@@ -14,7 +14,7 @@ created: MAY 2017
 
 import logging
 
-from twisted.internet.protocol import Protocol, ServerFactory, ClientFactory
+from twisted.internet.protocol import Protocol, Factory, ClientFactory
 
 class Player1Server(Protocol):
 
@@ -30,7 +30,7 @@ class Player1Server(Protocol):
         logging.info('P1 Server got data: %s', data)
         self.gs.network_data.append(data)
 
-class Player1ServerFactory(ServerFactory):
+class Player1ServerFactory(ClientFactory):
 
     def __init__(self, gs):
         self.gs         = gs
@@ -60,7 +60,7 @@ class Player2Client(Protocol):
         logging.info('P2 Client got data: %s', data)
         self.gs.network_data.append(data)
 
-class Player2ClientFactory(ClientFactory):
+class Player2ClientFactory(Factory):
 
     def __init__(self, gs):
         self.gs = gs

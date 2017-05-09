@@ -62,6 +62,8 @@ class SnakeGame(object):
         self.snakes[0].draw(gs.screen)
 
         if gs.multiplayer:
+            print('network data')
+            print(network_data)
             self.snakes[1].update(gs, network_data)
             self.snakes[1].draw(gs.screen)
 
