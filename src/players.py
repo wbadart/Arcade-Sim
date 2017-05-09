@@ -20,7 +20,6 @@ class Player1Server(Protocol):
 
     def __init__(self, gs):
         self.gs = gs
-        gs.transport = self.transport
         logging.debug('Constructing P1 Server')
 
     def connectionMade(self):
@@ -34,10 +33,14 @@ class Player1Server(Protocol):
 class Player1ServerFactory(ServerFactory):
 
     def __init__(self, gs):
-        self.gs = gs
+        self.gs         = gs
+        self.connection = Player1Server(gs)
+
+    def write(self, data):
+        self.connection.transport.write(data)
 
     def buildProtocol(self, addr):
-        return Player1Server(self.gs)
+        return self.connection
 
 
 #===============================================

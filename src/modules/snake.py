@@ -28,7 +28,7 @@ def get_snake_start_pos():
 def netdata2event(datastr):
     if ':' not in datastr: return ETYPE(type=None, key='')
     etype, ekey = data.string.split(':')
-    return ETYPE(type=int(etype), key=ekey)
+    return ETYPE(type=int(etype), key=int(ekey))
 
 class SnakeCell(pygame.sprite.Sprite):
     def __init__(self, pos, color=(255, 255, 255)):
@@ -48,17 +48,14 @@ class SnakeGame(object):
 
     def game_loop(self, gs, events, network_data):
 
-        network_data = netdata2event(network_data)
-        print(network_data)
-
-        data = ''
         try:
-            data = network_data.pop()
-        except IndexError as e:
-            pass
+            network_data = [ netdata2event(network_data.pop()) ]
+        except IndexError:
+            network_data = []
 
-        for e in (e for e in events if e.type == pygame.KEYDOWN or e.type == pygame.KEYUP):
-            gs.transport.write('{}:{}'.format(e.type, e.key))
+        if gs.multiplayer:
+            for e in (e for e in events if e.type == pygame.KEYDOWN or e.type == pygame.KEYUP):
+                gs.factory.write('{}:{}'.format(e.type, getattr(e, 'key')))
 
         gs.screen.blit(SnakeGame.food.image, SnakeGame.food.rect)
         self.snakes[0].update(gs, events)
@@ -76,7 +73,6 @@ class Snake(object):
         self.data  = [ SnakeCell(get_snake_start_pos()) for _ in range(2) ]
         self.group = pygame.sprite.RenderPlain(self.data)
 
-        self.player = player
         self.states = { 'up': (0, -30), 'down': (0, 30), 'right': (30, 0), 'left' : (-30, 0) }
         self.state  = 'right'
 

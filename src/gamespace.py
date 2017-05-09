@@ -110,7 +110,9 @@ class GameSpace(object):
         if player == 1:
 
             logging.info('P1 listening on port %d', port)
-            TCP4ServerEndpoint(reactor, port).listen(Player1ServerFactory(self))
+            self.factory = Player1ServerFactory(self)
+            print('SELF FACTORY!!!! %s', self.factory)
+            TCP4ServerEndpoint(reactor, port).listen(self.factory)
 
         else:
 
