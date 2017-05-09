@@ -22,7 +22,7 @@ Options:
 import getopt
 import logging
 import sys
-#import yaml
+import yaml
 
 from gamespace import GameSpace
 
@@ -60,12 +60,12 @@ def main( CONFIG_FNAME='./config.yml', LOG_LEVEL=logging.INFO ):
         sys.exit(1)
 
     # Set inital config
-    '''config = {}
+    config = {}
     with open(CONFIG_FNAME, 'r') as fs:
         config = yaml.safe_load(fs)
 
     logging.basicConfig( level=LOG_LEVEL
-                       , format='[%(module)s][%(levelname)s]:%(message)s' )'''
+                       , format='[%(module)s][%(levelname)s]:%(message)s' )
 
     # Run game loop
     logging.info('===== CONSTRUCTING GAMESPACE =====')
