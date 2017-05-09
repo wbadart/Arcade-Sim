@@ -18,22 +18,11 @@ import os
 import pygame
 
 from gameobj import *
-from loader import ModuleLoader
+from loader  import ModuleLoader
+from players import *
 
 from twisted.internet.protocol  import Protocol, ClientFactory
-from twisted.internet.endpoints import TCP4ClientEndpoint
-
-class GameProtocol(Protocol):
-    def __init__(self):
-        pass
-    def dataReceived(self, data):
-        logging.warning('Got data: %s')
-
-class GameProtocolFactory(ClientFactory):
-    def __init__(self):
-        pass
-    def buildProtocol(self, addr):
-        return GameProtocol()
+from twisted.internet.endpoints import TCP4ServerEndpoint, TCP4ClientEndpoint
 
 class GameSpace(object):
     '''The main export. Contains configuration and main execution for pygame.'''
@@ -114,13 +103,22 @@ class GameSpace(object):
         self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
-        self.host = config.get('remote-host'), config.get('remote-ports').get('p1' if player == 1 else 'p2')
-        logging.info('Attempting connection to %s', self.host)
-
+        port = 8000
         from twisted.internet import reactor
-        self.endpoint = TCP4ClientEndpoint(reactor, *self.host)
 
-        self.endpoint.connect(GameProtocolFactory())
+        if player == 1:
+
+            logging.info('P1 listening on port %d', port)
+            endpoint = TCP4ServerEndpoint(reactor, port)
+            endpoint.listen(Player1ServerFactory())
+
+        else:
+
+            host = 'localhost'
+            logging.info('P2 attempting connection to %s:%d', host, port)
+            endpoint = TCP4ClientEndpoint(reactor, host, port)
+            endpoint.connect(Player2ClientFactory())
+
         pid = os.fork()
         if pid == 0: reactor.run()
 
