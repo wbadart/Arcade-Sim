@@ -118,7 +118,8 @@ class GameSpace(object):
 
             host = 'localhost'
             logging.info('P2 attempting connection to %s:%d', host, port)
-            TCP4ClientEndpoint(reactor, host, port).connect(Player2ClientFactory(self))
+            self.factory = Player2ClientFactory(self)
+            TCP4ClientEndpoint(reactor, host, port).connect(self.factory)
 
         pid = os.fork()
         if pid == 0: reactor.run()
