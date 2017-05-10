@@ -129,7 +129,7 @@ def main_game_loop(gs):
 
     for e in events:
         try:
-            gs.factory.connection.transport.write('{}:{}'.format(e.type, getattr(e, 'key')).encode('latin-1'))
+            gs.factory.connection.transport.write('{}:{}'.format(e.type, getattr(e, 'key') or 0).encode('latin-1'))
         except AttributeError:
             pass
         if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'menu':
