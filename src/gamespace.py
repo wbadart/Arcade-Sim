@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 '''
 gamespace.py
 
@@ -15,6 +14,8 @@ import logging
 import pygame
 import sys
 
+from collections import namedtuple
+
 from twisted.internet.task     import LoopingCall
 from twisted.internet.protocol import Protocol, Factory
 from twisted.internet          import reactor
@@ -22,6 +23,13 @@ from twisted.internet          import reactor
 from src.gameobj import GameObj, Menu, Button
 from src.loader  import ModuleLoader
 from src.players import GameClientFactory, GameServerFactory
+
+E_TYPE = namedtuple('E_TYPE', 'type key')
+def netstr2e(s):
+    try:
+        return E_TYPE(type=int(s.split(':')[0]), key=int(s.split(':')[1]))
+    except (IndexError, ValueError) as e:
+        return None
 
 class GameSpace(object):
 
@@ -31,6 +39,7 @@ class GameSpace(object):
         pygame.init()
         self.config      = config
         self.multiplayer = False if player == 1 else True
+        self.net_queue   = []
 
         # Configure pygame window
         self.size   = self.width, self.height = config.get('width'), config.get('height')
@@ -102,6 +111,7 @@ class GameSpace(object):
 
     def push_network_data(self, data):
         logging.info('Got network data: %s', data)
+        self.net_queue.append(netstr2e(data))
 
 def main_game_loop(gs):
 
@@ -115,11 +125,11 @@ def main_game_loop(gs):
     gs.controls.update(events)
     gs.controls.draw(gs.screen)
 
-    gs.module.game_loop(gs, events)
+    gs.module.game_loop(gs, events, gs.net_queue)
 
     for e in events:
         try:
-            gs.factory.connection.transport.write('hello {}'.format(e.type).encode('latin-1'))
+            gs.factory.connection.transport.write('{}:{}'.format(e.type, getattr(e, 'key')).encode('latin-1'))
         except AttributeError:
             pass
         if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'menu':
@@ -127,7 +137,7 @@ def main_game_loop(gs):
 
     pygame.display.flip()
 
-def game_loop(gs, events):
+def game_loop(gs, events, net_queue):
     gs.menu.update(events)
     gs.screen.blit(*gs.menu_img)
     gs.menu.draw(gs.screen)

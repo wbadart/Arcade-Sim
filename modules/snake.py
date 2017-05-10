@@ -46,13 +46,14 @@ class Snake(object):
     def __init__(self):
         self.color = get_snake_color()
         self.pos   = get_snake_start_pos()
+
         self.data  = [ SnakeCell((self.pos[0] - SnakeCell.dimensions[0] * i, self.pos[1])
                                 , self.color) for i in range(Snake.start_len) ]
 
-        self.states = { 'up': (0, -SnakeCell.dimensions[1])
-                      , 'down': (0, SnakeCell.dimensions[1])
-                      , 'right': (SnakeCell.dimensions[0], 0)
-                      , 'left' : (-SnakeCell.dimensions[0], 0) }
+        self.states = { 'up': (0, -SnakeCell.dimensions[1] / 5)
+                      , 'down': (0, SnakeCell.dimensions[1] / 5)
+                      , 'right': (SnakeCell.dimensions[0] / 5, 0)
+                      , 'left' : (-SnakeCell.dimensions[0] / 5, 0) }
         self.state    = 'right'
 
     def update(self, gs, events):
@@ -67,7 +68,7 @@ class Snake(object):
         if self.data[0].rect.colliderect(SnakeGame.food.rect):
             SnakeGame.points += 1
             SnakeGame.food = SnakeCell((randrange(0, 600, 30), randrange(0, 600, 30)))
-        elif self.data[0].rect.collidelist(self.data[1:]) != -1 or self.out_of_bounds():
+        elif self.data[0].rect.collidelist(self.data[5:]) != -1:
             raise Exception('Game over')
         else: self.data.pop()
 
@@ -76,6 +77,7 @@ class Snake(object):
 
     def out_of_bounds(self):
         x, y = self.data[0].rect.x, self.data[0].rect.y
+        print(x, y)
         return (x < 0 or x >= 640) or (y < 0 or y >= 640)
 
 
@@ -87,14 +89,17 @@ class SnakeGame(object):
     def __init__(self, multiplayer):
         self.snakes = [ Snake() for _ in range(multiplayer + 1) ]
 
-    def game_loop(self, gs, events):
+    def game_loop(self, gs, events, net_queue):
 
         SnakeGame.food.draw(gs.screen)
         self.snakes[0].update(gs, events)
+        self.snakes[1].update(gs, net_queue)
+
         self.snakes[0].draw(gs.screen)
+        self.snakes[1].draw(gs.screen)
 
 game = SnakeGame(True)
-def game_loop(gs, events):
-    game.game_loop(gs, events)
+def game_loop(gs, events, net_queue):
+    game.game_loop(gs, events, net_queue)
 
 
