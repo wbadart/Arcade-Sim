@@ -15,6 +15,7 @@ import pygame
 import sys
 
 from collections import namedtuple
+from random      import choice
 
 from twisted.internet.task     import LoopingCall
 from twisted.internet.protocol import Protocol, Factory
@@ -25,6 +26,7 @@ from src.loader  import ModuleLoader
 from src.players import GameClientFactory, GameServerFactory
 
 E_TYPE = namedtuple('E_TYPE', 'type key')
+
 def netstr2e(s):
     s = str(s)
     try:
@@ -112,7 +114,7 @@ class GameSpace(object):
 
     def push_network_data(self, data):
         logging.info('Got network data: %s', data)
-        self.net_queue= [netstr2e(data)]
+        self.net_queue = [netstr2e(data)]
 
 def main_game_loop(gs):
 
