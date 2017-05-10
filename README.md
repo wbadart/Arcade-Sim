@@ -14,7 +14,7 @@ for gameplay and the [Twisted](#) library for multiplayer.
 https://github.com/wbadart/Arcade-Sim
 
 ##Download and Beginning Gameplay
-If you would like to play a single player game, go to the src directory under Arcade-Sim
+If you would like to play a single player game, go to the directory Arcade-Sim
 and run python3 main.py -p 1 this will set your preferred user settings to single player.
 If, however, you would like to join a pre-existing game, run python3 main.py -p 2. This will
 connect you to the listening local port on player one's game and begin interactive gameplay.
@@ -63,8 +63,7 @@ the screen and housing the most basic high level gameplay calls.
 In order to add new games, they should be developed under the modules folder. This is where snake.py resides as well as the initial development of pacman. This is
 where unique images and items specific to the game are created. In the snake.py file we define the game loops for snake (with a multi player feature to add the other
 players key strokes to the event loop using a network_data queue filled with data from dataReceived function of current player. This file also produces random food,
-snake color, and movement of the snake depending on keystrokes. Similarly, the pacman.py file handles the sprite sheet in order to create pacman's movement and the
-classic arcade background. 
+snake color, and movement of the snake depending on keystrokes. 
 
 ##Use of Twisted
 The majority of the Twisted protocol can be found in players.py. We build a peer to peer connection by having player one open up a listening port on localhost. Similarly
