@@ -77,7 +77,6 @@ class Snake(object):
 
     def out_of_bounds(self):
         x, y = self.data[0].rect.x, self.data[0].rect.y
-        print(x, y)
         return (x < 0 or x >= 640) or (y < 0 or y >= 640)
 
 

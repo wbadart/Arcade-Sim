@@ -26,6 +26,7 @@ from src.players import GameClientFactory, GameServerFactory
 
 E_TYPE = namedtuple('E_TYPE', 'type key')
 def netstr2e(s):
+    print('aslkdfjsalkdajdf:', s.split(':'))
     try:
         return E_TYPE(type=int(s.split(':')[0]), key=int(s.split(':')[1]))
     except (IndexError, ValueError) as e:
