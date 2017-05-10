@@ -24,7 +24,7 @@ modules:
 # - spaceinvaders
 
 # Network
-remote-host: localhost
+remote-host: machine.dhcp.nd.edu
 remote-port: 54322
 
 # Controls
