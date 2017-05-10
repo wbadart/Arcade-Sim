@@ -111,7 +111,7 @@ class GameSpace(object):
 
     def push_network_data(self, data):
         logging.info('Got network data: %s', data)
-        self.net_queue.append(netstr2e(data))
+        self.net_queue= [netstr2e(data)]
 
 def main_game_loop(gs):
 

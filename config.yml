@@ -25,7 +25,7 @@ modules:
 
 # Network
 remote-host: localhost
-remote-port: 8000
+remote-port: 54322
 
 # Controls
 keymap:
