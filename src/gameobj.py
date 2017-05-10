@@ -119,6 +119,7 @@ class Button(pygame.sprite.Sprite):
         screen.blit(self.label, self.pos)
 
     def click(self, gs):
+        print(self.module)
         gs.module = self.module
 
     def set_state(self, state):
@@ -131,8 +132,8 @@ class Menu(object):
     def __init__(self, buttons, gs, x=0, y=0, keymap={}):
         '''Set initial configuration'''
         self.buttons = buttons
-        self.gs      = gs
         self.pos     = self.x, self.y = x, y
+        self.gs      = gs
         self.keymap  = keymap
         # Cursor is used to track the active button
         self.cursor  = 0

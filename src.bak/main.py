@@ -1,87 +1,78 @@
 #!/usr/bin/env python3
 
 '''
-' main.cpp
-'
-' Main execution of arcade sim projet.
-'
-' Brittany DiGenova
-' Will Badart
-' created: APR 2017
+main.py
+
+Main execution for Arcade-Sim.
+
+Contributors:
+    - Brittany DiGenova (bdigenov)
+    - Will Badart       (wbadart)
+created: MAY 2017
+
+usage: main.py [ OPTIONS ]
+
+Options:
+    -c FILE   --config FILE     Use FILE as the program config file (default: ./config.yml)
+    -v        --verbose         Set the program log level to DEBUG (default: WARNING)
+    -p PLAYER                   Set player number to PLAYER (must be 1 or 2; required)
+    --help                      Show this help message
 '''
 
 import getopt
 import logging
-import pygame
 import sys
+import yaml
 
-from gameobj import GameObj
+from gamespace import GameSpace
 
-G_KEEP_LOOPING = True
-G_MAIN_LOGGER  = logging.getLogger('G_MAIN_LOGGER')
-G_GAME_OBJS    = {}
+#======================
+# Command line helpers
+#======================
 
 def usage(status=0):
-    '''Display the usage message end exit with exit code `status`'''
-
-    print('''usage: {} [ -w WIDTH -h HEIGHT ]
-    -w WIDTH --width=WIDTH       Set the game window width (default: 640)
-    -h HEIGHT --height=HEIGHT    Set the game window height (default: 480)
-    --help                       Show this help message.'''.format(sys.argv[0])
-    , file=sys.stderr)
+    '''Print the help message and exit with exit code `status`'''
+    print(__doc__, file=sys.stderr)
     sys.exit(status)
 
-def error(e, status=1):
-    '''Use the global logger to log an error and exit with exit code `status`'''
+#================
+# Main execution
+#================
 
-    G_MAIN_LOGGER.error(e)
-    usage(status)
+def main( CONFIG_FNAME='./config.yml', LOG_LEVEL=logging.INFO ):
+    '''Run main execution, launch game window and play!'''
 
-def game_loop(screen, black=(0, 0, 0)):
-    '''Main game execution'''
-
-    font = pygame.font.SysFont('Helvetica', 75)
-    label = font.render('Main menu', 10, (255, 255, 255))
-    loop_events = pygame.event.get()
-    screen.fill(black)
-    for obj in G_GAME_OBJS.values():
-        # obj.tick(loop_events)
-        screen.blit(obj.surface, obj.rect)
-    screen.blit(label, (screen.get_width() / 2 - label.get_width() / 2, 100))
-    pygame.display.flip()
-
-def main( WIDTH=640
-        , HEIGHT=480
-        , LOG_LEVEL=logging.INFO ):
-    '''Main program execution, including command line parsing'''
-
-    pygame.init()
-
-    if __name__ == '__main__':
-        opts, args = None, None
-        try:
-            opts, args = getopt.getopt( sys.argv[1:], 'w:h:v'
-                                      , ['width=', 'height=', 'verbose', 'help'] )
-        except getopt.GetoptError as e:
-            error(e)
-
+    # Parse command line options
+    PLAYER = None
+    try:
+        opts, args = getopt.getopt( sys.argv[1:], 'p:c:vh'
+                                  , ['config=', 'verbose', 'help'] )
         for o, a in opts:
-            if   o == '--width'  or o == '-w': WIDTH  = int(a)
-            elif o == '--height' or o == '-h': HEIGHT = int(a)
+            if   o == '--config' or o == '-c': CONFIG_FNAME = a
             elif o == '--verbose' or o == '-v': LOG_LEVEL = logging.DEBUG
-            elif o == '--help': usage(0)
+            elif o == '-p': PLAYER = int(a)
+            elif o == '--help': usage()
+    except getopt.GetoptError as e:
+        logging.error(e)
+        sys.exit(1)
+    except ValueError as e:
+        logging.error('PLAYER, WIDTH, and HEIGHT require valid integer arguments')
+        sys.exit(1)
 
-    logging.basicConfig( level=LOG_LEVEL )
-    G_MAIN_LOGGER.info('Using configuration: WIDTH=%d, HEIGHT=%d', WIDTH, HEIGHT)
+    # Set inital config
+    config = {}
+    with open(CONFIG_FNAME, 'r') as fs:
+        config = yaml.safe_load(fs)
 
-    size   = WIDTH, HEIGHT
-    black  = 0, 0, 0
-    screen = pygame.display.set_mode(size)
+    logging.basicConfig( level=LOG_LEVEL
+                       , format='[%(module)s][%(levelname)s]:%(message)s' )
 
-    G_GAME_OBJS['title'] = GameObj('assets/menu_bg.jpg')
-    G_GAME_OBJS['title'].surface = pygame.transform.scale(G_GAME_OBJS['title'].surface, size)
+    # Run game loop
+    logging.info('===== CONSTRUCTING GAMESPACE =====')
+    game = GameSpace(PLAYER, config)
 
-    while G_KEEP_LOOPING: game_loop(screen)
+    logging.info('===== RUNNING GAME MAIN EXECUTION ======')
+    game.main()
 
 if __name__ == '__main__': main()
 

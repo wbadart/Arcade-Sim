@@ -24,7 +24,7 @@ import logging
 import sys
 import yaml
 
-from gamespace import GameSpace
+from src.gamespace import GameSpace
 
 #======================
 # Command line helpers
@@ -58,6 +58,11 @@ def main( CONFIG_FNAME='./config.yml', LOG_LEVEL=logging.INFO ):
     except ValueError as e:
         logging.error('PLAYER, WIDTH, and HEIGHT require valid integer arguments')
         sys.exit(1)
+
+    # Sanity check
+    if not PLAYER:
+        logging.error('You must specify player 1 or player 2.')
+        usage(1)
 
     # Set inital config
     config = {}

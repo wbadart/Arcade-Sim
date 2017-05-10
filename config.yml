@@ -1,0 +1,45 @@
+##
+# config.yml
+#
+# Configures the module loader for the game; indicates
+# which mini-games to load and where to find them.
+#
+# Brittany DiGenova
+# Will Badart
+#
+# created: MAY 2017
+##
+
+# Game window settings
+width: 640
+height: 820
+tick: 30
+
+# Module loader
+module-root: modules
+modules:
+# - pacman
+- snake
+# - duckhunt
+# - spaceinvaders
+
+# Network
+remote-host: localhost
+remote-port: 8000
+
+# Controls
+keymap:
+    # Joystick controls
+    up: w
+    down: s
+    left: a
+    right: d
+
+    # A/ B buttons
+    A: j
+    B: k
+
+    # Misc
+    help: h
+    menu: m
+

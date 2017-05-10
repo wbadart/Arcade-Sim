@@ -12,166 +12,123 @@ created: MAY 2017
 '''
 
 import logging
-import modules._misc   as misc
-import modules._render as render
-import os
 import pygame
+import sys
 
-from gameobj import *
-from loader  import ModuleLoader
-from players import *
+from twisted.internet.task     import LoopingCall
+from twisted.internet.protocol import Protocol, Factory
+from twisted.internet          import reactor
 
-from twisted.internet.protocol  import Protocol, ClientFactory
-from twisted.internet.endpoints import TCP4ServerEndpoint, TCP4ClientEndpoint
-from twisted.internet.task      import LoopingCall
-from twisted.internet           import reactor
+from src.gameobj import GameObj, Menu, Button
+from src.loader  import ModuleLoader
+from src.players import GameClientFactory, GameServerFactory
 
 class GameSpace(object):
-    '''The main export. Contains configuration and main execution for pygame.'''
 
     def __init__(self, player, config={}):
-        '''Construct GameSpace and perform pygame initialization'''
 
-        # Initialize pygame library
+        # Initialize library and intstnace properties
         pygame.init()
-        self.config       = config
-        self.network_data = []
-        self.multiplayer  = False if player == 1 else True
+        self.config      = config
+        self.multiplayer = False if player == 1 else True
 
-        # Configure and open the window
+        # Configure pygame window
         self.size   = self.width, self.height = config.get('width'), config.get('height')
         self.screen = pygame.display.set_mode(self.size)
-        self.tick   = config.get('tick')
+        self.clock  = pygame.time.Clock()
+        self.tick   = config.get('tick') or 30
 
         # Configure keymapping; this establishes a mapping from the "command" (up/
         # down/etc, keys of the config keymap) to the corresponding pygame key const
         # Ultimately maps ascii_code -> command
-        self.keymap  = { ord(self.config['keymap'].get(c)): c for c in self.config['keymap'] }
-        logging.info('Established keymap: %s', self.keymap)
+        self.keymap  = { ord(self.config['keymap'][c]): c for c in self.config['keymap'] }
 
-        # Misc. game properties
-        self.clock  = pygame.time.Clock()
+        # Set up the module loader
+        loader      = ModuleLoader('./config.yml')
+        self.module = sys.modules[__name__]
 
-        # Bring in the module loader
-        self.loader = ModuleLoader('./config.yml')
-        self.module = self
-        self.help_module = self.loader.load_individual('modules.help')
+        # Set up the main menu w/ background stuff
+        screen_bg = pygame.Surface((self.width, self.width))
+        screen_bg.fill((0, 0, 0))
+        screen_bg = screen_bg, screen_bg.get_rect()
 
-        # Initialize main menu screen
-        self.screen_bg = pygame.Surface((self.width, self.width))
-        self.screen_bg.fill((0, 0, 0))
-        self.screen_bg = self.screen_bg, self.screen_bg.get_rect()
+        control_bg = pygame.Surface((self.width, self.height - self.width))
+        control_bg.fill((45, 45, 45))
+        control_bg = control_bg, (0, self.width)
 
-        self.control_bg = pygame.Surface((self.width, self.height - self.width))
-        self.control_bg.fill((45, 45, 45))
-        self.control_bg = self.control_bg, self.control_bg.get_rect()
-        self.control_bg[1].move_ip(0, self.width)
+        help_label = pygame.font.SysFont('Helvetica', 16)\
+                           .render('Press "h" for help and "m" for menu.', 10, (165, 165, 165))
+        help_label = help_label, ( self.width / 2 - help_label.get_width() / 2
+                                 , self.height - help_label.get_height() )
 
-        menu_img  = pygame.image.load('./assets/menu_bg.jpg')
-        menu_rect = menu_img.get_rect()
+        self.backgrounds = [ screen_bg, control_bg, help_label ]
+        menu_img         =   pygame.image.load('./assets/menu_bg.jpg')
+        menu_img         =   pygame.transform.scale(menu_img, (self.width, self.width))
+        self.menu_img    =   menu_img, menu_img.get_rect()
 
-        scale_factor  = self.width / menu_rect.width
-        menu_img      = pygame.transform.scale(menu_img, (self.width, self.screen_bg[1].height))
-        menu_rect     = menu_img.get_rect()
-        self.menu_img = menu_img, menu_rect
+        # Set up control visuals
+        self.controls = pygame.sprite.RenderPlain(
+                [ GameObj({ 'default': './assets/stick-center.png'
+                          , 'up':      './assets/stick-up.png'
+                          , 'left':    './assets/stick-left.png'
+                          , 'down':    './assets/stick-down.png'
+                          , 'right':   './assets/stick-right.png'
+                          }, 10, self.width + 20, self.keymap )
+                , GameObj({ 'default': './assets/button_a_up.png'
+                          , 'A':       './assets/button_a_down2.png'
+                          }, self.width / 2 + 20, self.width + 20, self.keymap )
 
-        # Fonts and stuff
-        self.fonts         = { 'title': pygame.font.SysFont('Helvetica', 16) }
-        help_key, menu_key = chr(next(k for k in self.keymap if self.keymap[k] == 'help'))\
-                           , chr(next(k for k in self.keymap if self.keymap[k] == 'menu'))
-        self.help_label    = self.fonts['title'].render( 'Press \'{}\' for help, \'{}\' to return to menu.'\
-                                                    .format(help_key, menu_key)
-                                                    , 10, (160, 160, 160))
-        self.help_label = self.help_label, self.help_label.get_rect()
-        self.help_label[1].move_ip((self.width / 2 - self.help_label[1].width / 2
-                                  , self.height - self.help_label[1].height ))
+                , GameObj({ 'default': './assets/button_b_up.png'
+                          , 'B':       './assets/button_b_down.png'
+                          }, self.width / 2 + 168, self.width + 20, self.keymap ) ])
 
-        self.controlobjs = pygame.sprite.RenderPlain(
-                        [ GameObj({ 'default': './assets/stick-center.png'
-                                  , 'up':      './assets/stick-up.png'
-                                  , 'left':    './assets/stick-left.png'
-                                  , 'down':    './assets/stick-down.png'
-                                  , 'right':   './assets/stick-right.png'
-                                  }, 10, self.width + 20, self.keymap )
+        self.menu = Menu([ Button(m.name, m, not i) for i, m in enumerate(loader.modules) ]
+                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
-                        , GameObj({ 'default': './assets/button_a_up.png'
-                                  , 'A':       './assets/button_a_down2.png'
-                                  }, self.width / 2 + 20, self.width + 20, self.keymap )
+        # Configure multiplayer
+        host = config.get('remote-host') or 'localhost', config.get('remote-port') or 8000
+        self.factory = GameServerFactory(self) if player == 1 else GameClientFactory(self)
+        if player == 1: reactor.listenTCP(host[1], self.factory)
+        elif player == 2: reactor.connectTCP(*host, self.factory)
 
-                        , GameObj({ 'default': './assets/button_b_up.png'
-                                  , 'B':       './assets/button_b_down.png'
-                                  }, self.width / 2 + 168, self.width + 20, self.keymap )
-                        ] )
-
-        self.menu = Menu( [ Button(m.name, m, not i) for i, m in enumerate(self.loader.modules) ]
-                        , self, self.width / 2 - Button.width / 2, 10, self.keymap )
-
-        host = 'localhost', 8000
-
-        if player == 1:
-
-            logging.info('P1 listening on port %d', host[1])
-            self.factory = Player1ServerFactory(self)
-            #self.factory = Player2ClientFactory(self)
-            #reactor.connectTCP('ash.campus.nd.edu', 40007, self.factory)
-            TCP4ServerEndpoint(reactor, host[1]).listen(self.factory)
-
-        else:
-
-            logging.info('P2 attempting connection to %s:%d', *host)
-            self.factory = Player2ClientFactory(self)
-            #reactor.connectTCP('ash.campus.nd.edu', 40019, self.factory)
-            TCP4ClientEndpoint(reactor, *host).connect(self.factory)
-            reactor.run()
-
+    def p(self, s):
+        logging.error(s)
 
     def main(self):
-        '''Main game execution. Basically a wrapper for `game_loop`'''
-        '''Create a new looping call that is a function that runs the game loop
-        lc = loopingcall(Function to call)
-        lc.start 1/60 look up looping call'''
-
-        logging.debug('Constructing looping call')
-        lc = LoopingCall(f=main_game_loop, a=(self))
-
-        logging.debug('Starting looping call')
-        lc.start(0.2)
+        logging.debug('Running gamespace main function')
+        d = LoopingCall(main_game_loop, (self)).start(1. / self.tick)
+        d.addBoth(self.p)
         reactor.run()
 
-        # try:
-        #     while True: #need to avoid looping twice infinitely use twisteed looping call
-        #         loop_events = pygame.event.get()
-        #         self.module.game_loop(self, loop_events, self.network_data)
-        # except KeyboardInterrupt as e:
-        #     print('Bye!')
-        # except misc.Loss as e:
-        #     while True:
-        #         loop_events = pygame.event.get()
-        #         loss_loop(self, loop_events)
-
-    def on_datareceived(self, data):
-        self.network_data.append(data)
-
-    def game_loop(gs, events):
-        gs.screen.blit(*gs.menu_img)
-        gs.menu.update(events)
-        gs.menu.draw(gs.screen)
-
-        for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'help'):
-            gs.module = gs.help_module
+    def push_network_data(self, data):
+        logging.info('Got network data: %s', data)
 
 def main_game_loop(gs):
-    '''Main execution/ game loop'''
-    logging.debug('Entered main game loop')
+
+    # gs.clock.tick(self.tick)
     events = pygame.event.get()
+
+    # Do backgrounds
+    gs.screen.fill((0, 0, 0))
+
+    for bg in gs.backgrounds: gs.screen.blit(*bg)
+    gs.controls.update(events)
+    gs.controls.draw(gs.screen)
+
     gs.module.game_loop(gs, events)
 
+    for e in events:
+        try:
+            gs.factory.connection.transport.write('hello {}'.format(e.type).encode('latin-1'))
+        except AttributeError:
+            pass
+        if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'menu':
+            gs.module = sys.modules[__name__]
 
-@render.render_controls
-def loss_loop(gs, events, net_data=[]):
-    menu_img = pygame.image.load('./assets/gameover.jpg')
-    scale_factor  = gs.width / menu_img.get_width()
-    menu_img      = pygame.transform.scale(menu_img, (gs.width, gs.screen_bg[1].height))
-    gs.screen.blit(menu_img, menu_img.get_rect())
+    pygame.display.flip()
 
+def game_loop(gs, events):
+    gs.menu.update(events)
+    gs.screen.blit(*gs.menu_img)
+    gs.menu.draw(gs.screen)
 
