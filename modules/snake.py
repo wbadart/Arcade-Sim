@@ -58,6 +58,7 @@ class Snake(object):
 
     def update(self, gs, events):
 
+        print([e for e in events])
         for e in (e for e in events if e.type == pygame.KEYDOWN):
             self.state = gs.keymap.get(e.key) or self.state
 

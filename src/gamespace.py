@@ -30,7 +30,7 @@ def netstr2e(s):
     try:
         return E_TYPE(type=int(s.split(':')[0]), key=int(s.split(':')[1]))
     except (IndexError, ValueError) as e:
-        return None
+        return E_TYPE(type=0, key=0)
 
 class GameSpace(object):
 
