@@ -26,7 +26,7 @@ from src.players import GameClientFactory, GameServerFactory
 
 E_TYPE = namedtuple('E_TYPE', 'type key')
 def netstr2e(s):
-    print('aslkdfjsalkdajdf:', s.split(':'))
+    s = str(s)
     try:
         return E_TYPE(type=int(s.split(':')[0]), key=int(s.split(':')[1]))
     except (IndexError, ValueError) as e:
@@ -130,7 +130,7 @@ def main_game_loop(gs):
 
     for e in events:
         try:
-            gs.factory.connection.transport.write('{}:{}'.format(e.type, getattr(e, 'key') or 0).encode('latin-1'))
+            gs.factory.connection.transport.write('{}:{}'.format(getattr(e, 'type') or 0, getattr(e, 'key') or 0).encode('latin-1'))
         except AttributeError:
             pass
         if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'menu':
