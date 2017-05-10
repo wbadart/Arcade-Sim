@@ -23,6 +23,8 @@ from players import *
 
 from twisted.internet.protocol  import Protocol, ClientFactory
 from twisted.internet.endpoints import TCP4ServerEndpoint, TCP4ClientEndpoint
+from twisted.internet.task      import LoopingCall
+from twisted.internet           import reactor
 
 class GameSpace(object):
     '''The main export. Contains configuration and main execution for pygame.'''
@@ -105,7 +107,6 @@ class GameSpace(object):
                         , self, self.width / 2 - Button.width / 2, 10, self.keymap )
 
         host = 'localhost', 8000
-        from twisted.internet import reactor
 
         if player == 1:
 
@@ -121,9 +122,7 @@ class GameSpace(object):
             self.factory = Player2ClientFactory(self)
             #reactor.connectTCP('ash.campus.nd.edu', 40019, self.factory)
             TCP4ClientEndpoint(reactor, *host).connect(self.factory)
-
-        pid = os.fork()
-        if pid == 0: reactor.run()
+            reactor.run()
 
 
     def main(self):
@@ -131,31 +130,42 @@ class GameSpace(object):
         '''Create a new looping call that is a function that runs the game loop
         lc = loopingcall(Function to call)
         lc.start 1/60 look up looping call'''
-        try:
-            while True: #need to avoid looping twice infinitely use twisteed looping call
-                loop_events = pygame.event.get()
-                self.module.game_loop(self, loop_events, self.network_data)
-        except KeyboardInterrupt as e:
-            print('Bye!')
-        except misc.Loss as e:
-            while True: loss_loop(self, [])
 
-    def game_loop(self, gs, events, network_data):
-        game_loop(gs, events, network_data)
+        logging.debug('Constructing looping call')
+        lc = LoopingCall(f=main_game_loop, a=(self))
+
+        logging.debug('Starting looping call')
+        lc.start(0.2)
+        reactor.run()
+
+        # try:
+        #     while True: #need to avoid looping twice infinitely use twisteed looping call
+        #         loop_events = pygame.event.get()
+        #         self.module.game_loop(self, loop_events, self.network_data)
+        # except KeyboardInterrupt as e:
+        #     print('Bye!')
+        # except misc.Loss as e:
+        #     while True:
+        #         loop_events = pygame.event.get()
+        #         loss_loop(self, loop_events)
 
     def on_datareceived(self, data):
         self.network_data.append(data)
 
-@render.render_controls
-def game_loop(gs, events, network_data):
+    def game_loop(gs, events):
+        gs.screen.blit(*gs.menu_img)
+        gs.menu.update(events)
+        gs.menu.draw(gs.screen)
+
+        for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'help'):
+            gs.module = gs.help_module
+
+def main_game_loop(gs):
     '''Main execution/ game loop'''
+    logging.debug('Entered main game loop')
+    events = pygame.event.get()
+    gs.module.game_loop(gs, events)
 
-    gs.screen.blit(*gs.menu_img)
-    gs.menu.update(events)
-    gs.menu.draw(gs.screen)
-
-    for e in (e for e in events if e.type == pygame.KEYDOWN and gs.keymap.get(e.key) == 'help'):
-        gs.module = gs.help_module
 
 @render.render_controls
 def loss_loop(gs, events, net_data=[]):
