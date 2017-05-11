@@ -69,7 +69,7 @@ class Snake(object):
         if self.data[0].rect.colliderect(SnakeGame.food.rect):
             SnakeGame.points += 1
             SnakeGame.food = SnakeCell((randrange(0, 600, 30), randrange(0, 600, 30)))
-        elif self.data[0].rect.collidelist(self.data[5:]) != -1:
+        elif self.data[0].rect.collidelist(self.data[30:]) != -1 or self.out_of_bounds():
             raise Exception('Game over')
         else: self.data.pop()
 
@@ -93,12 +93,12 @@ class SnakeGame(object):
 
         SnakeGame.food.draw(gs.screen)
         self.snakes[0].update(gs, events)
-        self.snakes[1].update(gs, net_queue)
+        if len(self.snakes) > 1: self.snakes[1].update(gs, net_queue)
 
         self.snakes[0].draw(gs.screen)
-        self.snakes[1].draw(gs.screen)
+        if len(self.snakes) > 1: self.snakes[1].draw(gs.screen)
 
-game = SnakeGame(True)
+game = SnakeGame(False)
 def game_loop(gs, events, net_queue):
     game.game_loop(gs, events, net_queue)
 

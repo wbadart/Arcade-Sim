@@ -58,6 +58,7 @@ class GameSpace(object):
         # Set up the module loader
         loader      = ModuleLoader('./config.yml')
         self.module = sys.modules[__name__]
+        self.help   = loader.load_individual('modules.help')
 
         # Set up the main menu w/ background stuff
         screen_bg = pygame.Surface((self.width, self.width))
@@ -128,7 +129,12 @@ def main_game_loop(gs):
     gs.controls.update(events)
     gs.controls.draw(gs.screen)
 
-    gs.module.game_loop(gs, events, gs.net_queue)
+    try:
+        gs.module.game_loop(gs, events, gs.net_queue)
+    except Exception as loss:
+        loss_img = pygame.image.load('./assets/gameover.jpg')
+        loss_img = pygame.transform.scale(loss_img, (gs.width, gs.width))
+        gs.screen.blit(loss_img, loss_img.get_rect())
 
     for e in events:
         try:
@@ -144,4 +150,6 @@ def game_loop(gs, events, net_queue):
     gs.menu.update(events)
     gs.screen.blit(*gs.menu_img)
     gs.menu.draw(gs.screen)
+    # for e in (e for e in events if e.type == pygame.KEYDOWN):
+    #     if gs.keymap.get(e.key) == 'help': self.module = self.help
 
