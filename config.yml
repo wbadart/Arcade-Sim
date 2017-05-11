@@ -18,7 +18,7 @@ tick: 30
 # Module loader
 module-root: modules
 modules:
-# - pacman
+- pacman
 - snake
 # - duckhunt
 # - spaceinvaders
